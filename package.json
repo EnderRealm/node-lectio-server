@@ -1,9 +1,13 @@
 {
-  "name":"socket.io-twitter-example",
+  "name":"lectio.server.twittertest",
   "version":"0.0.1",
   "private":true,
+
   "dependencies":{
-  "express":"*",
-  "oauth":"*"
+    "express":"*",
+    "oauth":"*",
+    "q":"*",
+    "request":"*"
  }
+
 }
