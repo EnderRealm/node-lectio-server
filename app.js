@@ -4,53 +4,6 @@ var Q = require('q');
 var request = require('request');
 var oaRequest = require('request');
 
-
-//function expandUrl(shortUrl) {
-//  return Q.ncall(request, null, {
-//      method: "HEAD",
-//      url: shortUrl,
-//      followAllRedirects: true
-//  // If a callback receives more than one (non-error) argument
-//  // then the promised value is an array. We want element 0.
-//  }).get('0').get('request').get('href');
-//}
-
-
-    //function expandUrl(shortUrl) {
-    //    return Q.ncall(request, null, {
-    //        method: "HEAD",
-    //        url: shortUrl,
-    //        followAllRedirects: true
-    //    }).get('0').get('request').get('href');
-    //}
-
-
-//function expandUrl(shortUrl) {
-//  var deferred = Q.defer();
-//  
-//  request({method: "HEAD", url: shortUrl, followAllRedirects: true}, deferred.nbind());
-//  
-//  return deferred.promise.get('request').get('href');
-//}
-
-
-    //function expandUrl(shortUrl) {
-    //    var deferred = Q.defer();
-    //    request(
-    //        {
-    //            method: "HEAD",
-    //            url: shortUrl,
-    //            followAllRedirects: true
-    //        },
-    //        deferred.node()
-    //    );
-    //    return deferred.promise
-    //        .get('request')
-    //        .get('href');
-    //}
-
-
-
 function expandUrl(shortUrl) {
 
     var deferred = Q.defer();
@@ -64,8 +17,6 @@ function expandUrl(shortUrl) {
         });
     return deferred.promise;
 }
-
-
 
 oa = new OAuth("https://api.twitter.com/oauth/request_token",
                  "https://api.twitter.com/oauth/access_token", 
@@ -121,68 +72,73 @@ oaRequest.addListener('response', function (response) {
   response.setEncoding('utf8');
   
   response.addListener('data', function (chunk) {
-
-    // check if chunk is small and don't process it if it is.  need to figure out why???
-    console.log(chunk);
-    
+   
+    // keep alive ping from twitter, just ignore
     if (chunk[0] != '{') {
-      console.log('keep alive!');
-      //code
+      return;
     }
-
-    if (Buffer.byteLength(chunk)>2) {
-      streamObj = JSON.parse(chunk.toString());
-
-      // check if chunk represents a tweet object
-      if(streamObj.hasOwnProperty('id')) {
-        console.log('---- start tweet ----');
-        console.log('id == ['+streamObj['id']+']');
-        console.log('user == ['+streamObj['user']['screen_name']+']');
-        console.log('text == ['+streamObj['text']+']');
-        
-        var entities;
-        
-        if (streamObj['entities'].hasOwnProperty('hashtags')) {
-          entities = streamObj['entities']['hashtags'];
-          for (var i in entities) {
-            console.log('hastag == ['+entities.text+']');
-          }
+  
+    var streamObj = JSON.parse(chunk.toString());
+    var tweet = new Object;
+  
+    // check if chunk represents a tweet object
+    if(streamObj.hasOwnProperty('id')) {
+      console.log('---- start tweet ----');
+      console.log('id == ['+streamObj['id']+']');
+      console.log('user == ['+streamObj['user']['screen_name']+']');
+      console.log('text == ['+streamObj['text']+']');
+      
+      tweet 
+      
+      
+      var entities;
+      
+      // check if tweet contains hashtags
+      if(streamObj['entities'].hasOwnProperty('hashtags')) {
+        entities = streamObj['entities']['hashtags'];
+        for (var i in entities) {
+          console.log('hashtag == ['+entities[i].text+']');
         }
-        
-        if(streamObj['entities'].hasOwnProperty('urls')) {
-          entities = streamObj['entities']['urls'];
-          for (var i in entities) {
-            console.log('short url == ['+entities[i].url+']');
-
-            expandUrl(entities[i].url)
-              .then(function (longUrl) {
-                  console.log('long url == ['+longUrl+']');
-            });
-          }
-        }
-
-        if(streamObj['entities'].hasOwnProperty('user_mentions')) {
-          entities = streamObj['entities']['user_mentions'];
-          for (var i in entities) {
-            console.log('user == ['+entities[i].screen_name+']');
-          }
-        }
-
-        console.log('---- end tweet ----')
       }
-      else if (streamObj.hasOwnProperty('friends')) {
-        console.log('# of Friends ['+streamObj['friends'].length+']');
+      
+      // check if tweet contains urls
+      if(streamObj['entities'].hasOwnProperty('urls')) {
+        entities = streamObj['entities']['urls'];
+        for (var i in entities) {
+          console.log('short url == ['+entities[i].url+']');
+          expandUrl(entities[i].url)
+            .then(function (longUrl) {
+                console.log('long url == ['+longUrl+']');
+          });
+        }
       }
+  
+      // check if tweet contains user_mentions
+      if(streamObj['entities'].hasOwnProperty('user_mentions')) {
+        entities = streamObj['entities']['user_mentions'];
+        for (var i in entities) {
+          console.log('user == ['+entities[i].screen_name+']');
+        }
+      }
+  
+      console.log('---- end tweet ----')
+      return;
     }
-    else {
-      console.log('['+chunk+']');
+    // check if chunk represents a friend list object
+    else if (streamObj.hasOwnProperty('friends')) {
+      console.log('# of Friends ['+streamObj['friends'].length+']');
+      return;
     }
-  }); // addListener
- 
+  }); //addListener 'data'
+
+  // listen for end messages from Twitter
   response.addListener('end', function () {
     console.log('--- END ---');
+    return;
   });
-});
+    
+}); // addListener 'response'
+ 
 oaRequest.end();  
   
   
