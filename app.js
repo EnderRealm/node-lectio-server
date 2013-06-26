@@ -2,13 +2,16 @@
 var twitlib = require('./twitterlib.js');
 
 
-var msg2 = twitlib.testStream();
 
-console.log(msg2);
+twitlib.testStream( function(data) {
+  console.log(data);
+});
 
-var msg = twitlib.userStream();
 
-console.log(msg);
+twitlib.userStream( function(data) {
+  console.log(data);
+});
+
 
 
 
