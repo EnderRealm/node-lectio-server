@@ -1,9 +1,7 @@
 var Q = require('q');
 var request = require('request');
 
-
 module.exports = {
-    
     expandUrl : function(shortUrl) {
         var deferred = Q.defer();
         request( { method: "HEAD", url: shortUrl, followAllRedirects: true },
@@ -15,9 +13,6 @@ module.exports = {
                 }
             });
         return deferred.promise;
-    }
-    
-    
-    
+    }    
 }
 

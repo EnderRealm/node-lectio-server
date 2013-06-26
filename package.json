@@ -7,7 +7,7 @@
     "express":"*",
     "oauth":"*",
     "q":"*",
-    "request":"*"
+    "request":"*",
+    "async":"*"
  }
-
 }
