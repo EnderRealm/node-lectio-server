@@ -41,7 +41,6 @@ var parseTweet = function(streamObj) {
             entities = streamObj['entities']['urls'];
             for (var i in entities) {
                 var url = new Object();
-                                        
                 url.short_url = entities[i].url;
                 tweet.urls.push(url);
             }
@@ -93,39 +92,26 @@ var userStream = function() {
             if (chunk[0] == '{') {
                           
                 var tweet;
-				
                 var streamObj = JSON.parse(chunk);
-				
+
                 if (streamObj.hasOwnProperty('id')) {
 
-                async.series(
-                    [
-                        function(callback) {
-	
-							tweet = parseTweet(streamObj);
-                            callback(null, 'parse finished id = '+tweet.id);
-                        },
-                        function(callback) {
-                            for (var i in tweet.urls) {
-								console.log(tweet.urls[i]);
-                                netlib.expandUrl(tweet.urls[i].short_url)
-                                    .then(function(longUrl) {
-                                        console.log('long url before assignment = '+longUrl);
-                                        tweet.urls[i].long_url = longUrl;
-                                    });
+                    var tweet = parseTweet(streamObj);
+
+                    async.eachSeries(tweet.urls, function(url, callback) {
+                        
+                        netlib.expandUrl(url.short_url, function(err, data) {
+                            if(err) {
+                                console.error(err);
+                            } 
+                            else {
+                                url.long_url = data;
+                                callback();
                             }
-                            callback(null, 'done expanding URLs id = '+tweet.id);
-                        },
-						function(callback) {
-							console.log('final');
-							console.log(tweet);
-						}
-                    ],
-                    function(err, status) {
-                        console.log(status);
-						console.log(err);
-                    }
-                );
+                        });
+                    }, function(err) {
+                        console.log(tweet); // in the end
+                    });
                 }
             } 
         }); //addListener 'data'
