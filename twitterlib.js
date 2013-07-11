@@ -3,6 +3,10 @@ var keys = require('./twitterkeys.js');
 var oaRequest = require('request');
 var netlib = require('./netlib.js');
 var async = require('async');
+var mongoClient = require('mongodb').MongoClient;
+var format = require('util').format;
+
+
 
 
 var parseTweet = function(streamObj) {
@@ -110,7 +114,22 @@ var userStream = function() {
                             }
                         });
                     }, function(err) {
-                        console.log(tweet); // in the end
+						mongoClient.connect('mongodb://127.0.0.1:29000/test', function(err, db) {
+							if(err) throw err;
+							
+							var collection = db.collection('test_insert');
+							
+							collection.insert(tweet, function(err, docs) {
+								collection.count(function(err,count) {
+									console.log(format('count = %s', count));
+									db.close();
+								
+								});
+							});
+						});
+
+
+					console.log(tweet); // in the end
                     });
                 }
             } 

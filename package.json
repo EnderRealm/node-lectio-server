@@ -8,6 +8,7 @@
     "oauth":"*",
     "q":"*",
     "request":"*",
-    "async":"*"
+    "async":"*",
+	"mongodb":"*"
  }
 }

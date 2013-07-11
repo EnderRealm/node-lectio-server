@@ -7,11 +7,11 @@ var twitlib = require('./twitterlib.js');
 //  console.log(data);
 //});
 
-console.log('start');
+
+console.log('Starting...');
 
 twitlib.userStream();
 
-console.log('start');
 
 
 
