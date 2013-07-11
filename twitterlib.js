@@ -47,9 +47,9 @@ var parseTweet = function(streamObj) {
             }
         }
        
-        //console.log(tweet);
         return tweet;
     }
+
     // check if chunk represents a friend list object
     else if (streamObj.hasOwnProperty('friends')) {
         var friends = new Object();
@@ -59,6 +59,7 @@ var parseTweet = function(streamObj) {
         return friends;
     }
 
+	
     return {};
 };
 
@@ -88,35 +89,41 @@ var userStream = function() {
         
         response.addListener('data', function (chunk) {
          
-            // keep alive ping from twitter, just ignore
+            // only processes JSON packages, ignore keep alive pings
             if (chunk[0] == '{') {
                           
                 var tweet;
+				
                 var streamObj = JSON.parse(chunk);
-                
+				
                 if (streamObj.hasOwnProperty('id')) {
+
                 async.series(
                     [
                         function(callback) {
-                            tweet = parseTweet(chunk.toString());
-                            console.log('in parse callback id = '+tweet.id);
+	
+							tweet = parseTweet(streamObj);
                             callback(null, 'parse finished id = '+tweet.id);
                         },
                         function(callback) {
-                            console.log('in expand callback id = '+tweet.id);
                             for (var i in tweet.urls) {
-                                netlib.expandUrl(tweet.urls[i].shortUrl)
+								console.log(tweet.urls[i]);
+                                netlib.expandUrl(tweet.urls[i].short_url)
                                     .then(function(longUrl) {
                                         console.log('long url before assignment = '+longUrl);
-                                        tweet.urls[i].longUrl = longUrl;
+                                        tweet.urls[i].long_url = longUrl;
                                     });
                             }
                             callback(null, 'done expanding URLs id = '+tweet.id);
-                        }
+                        },
+						function(callback) {
+							console.log('final');
+							console.log(tweet);
+						}
                     ],
                     function(err, status) {
                         console.log(status);
-                        //console.log(tweet);
+						console.log(err);
                     }
                 );
                 }
