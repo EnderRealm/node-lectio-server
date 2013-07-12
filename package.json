@@ -1,14 +1,19 @@
 {
-  "name":"lectio.server.twittertest",
-  "version":"0.0.1",
-  "private":true,
+    "name":"lectio.server.twittertest",
+    "version":"0.0.1",
+    "private":true,
 
-  "dependencies":{
-    "express":"*",
-    "oauth":"*",
-    "q":"*",
-    "request":"*",
-    "async":"*",
-	"mongodb":"*"
- }
+    "dependencies" : {
+        "express":"*",
+        "oauth":"*",
+        "q":"*",
+        "request":"*",
+        "async":"*",
+        "mongodb":"*"
+    },
+    "engines": {
+        "node" : "*",
+        "npm" : "*"    
+    }
+    
 }
