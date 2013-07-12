@@ -1,11 +1,11 @@
 var OAuth= require('oauth').OAuth;
 var keys = require('./twitterkeys.js');
-var oaRequest = require('request');
+//var oaRequest = require('request');
 var netlib = require('./netlib.js');
 var async = require('async');
 var mongoClient = require('mongodb').MongoClient;
 var format = require('util').format;
-
+var util = require('./util.js');
 
 
 
@@ -82,10 +82,7 @@ var userStream = function() {
         keys.consumerKey, keys.consumerSecret, 
         "1.0", "http://localhost:3000/oauth/callback", "HMAC-SHA1");
 
-    var access_token= keys.token;
-    var access_token_secret= keys.secret;
-    
-    oaRequest = oa.get("https://userstream.twitter.com/1.1/user.json", access_token, access_token_secret );
+    var oaRequest = oa.get("https://userstream.twitter.com/1.1/user.json",  keys.token, keys.secret);
     
     oaRequest.addListener('response', function (response) {
         response.setEncoding('utf8');
@@ -106,7 +103,7 @@ var userStream = function() {
                         
                         netlib.expandUrl(url.short_url, function(err, data) {
                             if(err) {
-                                console.error(err);
+                                util.logger(util.ERROR, err);
                             } 
                             else {
                                 url.long_url = data;
@@ -114,30 +111,35 @@ var userStream = function() {
                             }
                         });
                     }, function(err) {
-						mongoClient.connect('mongodb://127.0.0.1:29000/test', function(err, db) {
+						mongoClient.connect(keys.mongodb, function(err, db) {
 							if(err) throw err;
 							
 							var collection = db.collection('test_insert');
 							
 							collection.insert(tweet, function(err, docs) {
 								collection.count(function(err,count) {
-									console.log(format('count = %s', count));
 									db.close();
-								
-								});
-							});
-						});
-
-
-					console.log(tweet); // in the end
+								}); // collection.count
+							}); // collection.insert
+                            
+                            util.logger(util.INFO, 'insert tweet id(' + tweet.id + ') to db as id(' + tweet._id + ')');
+                            
+						}); // mongoClient.connect
                     });
                 }
             } 
         }); //addListener 'data'
     
+        // listen for error messages 
+        response.addListener('error', function() {
+        
+            util.logger(util.ERROR, 'Error received from twitter streaming API');
+            return;
+        });
+    
         // listen for end messages from Twitter
         response.addListener('end', function () {
-            console.log('--- END ---');
+            util.logger(util.WARN, 'Recevied end message from twitter streaming API');
             return; 
         }); // addListener 'end'
         

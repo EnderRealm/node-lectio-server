@@ -1,5 +1,6 @@
 
 var twitlib = require('./twitterlib.js');
+var util = require('./util.js');
 
 
 
@@ -8,7 +9,11 @@ var twitlib = require('./twitterlib.js');
 //});
 
 
-console.log('Starting...');
+
+
+util.logger(util.INFO, 'Starting update stream processing server...');
+
+
 
 twitlib.userStream();
 
