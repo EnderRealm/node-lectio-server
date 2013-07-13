@@ -5,7 +5,7 @@ var format = require('util').format;
 
 var netlib = require('./netlib.js');
 var util = require('./util.js');
-
+var config = require('./config.js').config;
 
 
 
@@ -66,23 +66,13 @@ var parseTweet = function(streamObj) {
 };
 
     
-var userStream = function() {
-    
-	var config = {};
-    config.port = process.env.PORT || 3000;
-    config.streamURL = process.env.TWITTER_STREAM_CALLBACK_URL;
-	config.token = process.env.TWITTER_TOKEN;
-	config.secret = process.env.TWITTER_SECRET;
-	config.consumerKey = process.env.TWITTER_CONSUMER_KEY;
-	config.consumerSecret = process.env.TWITTER_CONSUMER_SECRET;
-	config.mongoURL = process.env.MONGOHQ_URL;
-	config.tweet_collection = process.env.TWEET_COLLECTION_NAME;
+var userStream = function(userID, service) {
 	
     var oa = new OAuth("https://api.twitter.com/oauth/request_token",
         "https://api.twitter.com/oauth/access_token", 
-        config.consumerKey, config.consumerSecret, "1.0", config.streamURL, "HMAC-SHA1");
+        service.twitter_consumer_key, service.twitter_consumer_secret, "1.0", config.streamURL, "HMAC-SHA1");
 
-    var oaRequest = oa.get("https://userstream.twitter.com/1.1/user.json", config.token, config.secret);
+    var oaRequest = oa.get("https://userstream.twitter.com/1.1/user.json", service.twitter_token, service.twitter_secret);
     
     oaRequest.addListener('response', function (response) {
         response.setEncoding('utf8');
@@ -92,12 +82,12 @@ var userStream = function() {
             // only processes JSON packages, ignore keep alive pings
             if (chunk[0] == '{') {
                           
-                var tweet;
                 var streamObj = JSON.parse(chunk);
-
+				
                 if (streamObj.hasOwnProperty('id')) {
 
                     var tweet = parseTweet(streamObj);
+					tweet.userID = userID;
 
                     async.eachSeries(tweet.urls, function(url, callback) {
                         
@@ -116,13 +106,15 @@ var userStream = function() {
 							
 							var collection = db.collection(config.tweet_collection);
 							
+							
+							
 							collection.insert(tweet, function(err, docs) {
 								collection.count(function(err,count) {
 									db.close();
 								}); // collection.count
 							}); // collection.insert
                             
-                            util.logger(util.INFO, 'insert tweet id(' + tweet.id + ') to db as id(' + tweet._id + ')');
+                            util.logger(util.INFO, 'insert tweet id(' + tweet.id + ') to db as id(' + tweet._id + ') for user id(' + userID + ')');
                             
 						}); // mongoClient.connect
                     });
