@@ -77,6 +77,10 @@ var testStream = function(callback) {
     
 var userStream = function() {
     
+    var port = process.env.PORT || 3000;
+    var appURL = 'http://
+    
+    
     var oa = new OAuth("https://api.twitter.com/oauth/request_token",
         "https://api.twitter.com/oauth/access_token", 
         keys.consumerKey, keys.consumerSecret, 
