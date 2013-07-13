@@ -1,11 +1,11 @@
 var OAuth= require('oauth').OAuth;
-var keys = require('./twitterkeys.js');
-//var oaRequest = require('request');
-var netlib = require('./netlib.js');
 var async = require('async');
 var mongoClient = require('mongodb').MongoClient;
 var format = require('util').format;
+
+var netlib = require('./netlib.js');
 var util = require('./util.js');
+
 
 
 
@@ -62,31 +62,27 @@ var parseTweet = function(streamObj) {
         return friends;
     }
 
-	
     return {};
 };
 
-
-    
-var testStream = function(callback) {
-    console.log('start of testStream');
-    console.log('next step of testStream');
-    callback('data from testStream');
-};
-    
     
 var userStream = function() {
     
-    var port = process.env.PORT || 3000;
-    var appURL = 'http://
-    
-    
+	var config = {};
+    config.port = process.env.PORT || 3000;
+    config.streamURL = process.env.TWITTER_STREAM_CALLBACK_URL;
+	config.token = process.env.TWITTER_TOKEN;
+	config.secret = process.env.TWITTER_SECRET;
+	config.consumerKey = process.env.TWITTER_CONSUMER_KEY;
+	config.consumerSecret = process.env.TWITTER_CONSUMER_SECRET;
+	config.mongoURL = process.env.MONGOHQ_URL;
+	config.tweet_collection = process.env.TWEET_COLLECTION_NAME;
+	
     var oa = new OAuth("https://api.twitter.com/oauth/request_token",
         "https://api.twitter.com/oauth/access_token", 
-        keys.consumerKey, keys.consumerSecret, 
-        "1.0", "http://localhost:3000/oauth/callback", "HMAC-SHA1");
+        config.consumerKey, config.consumerSecret, "1.0", config.streamURL, "HMAC-SHA1");
 
-    var oaRequest = oa.get("https://userstream.twitter.com/1.1/user.json",  keys.token, keys.secret);
+    var oaRequest = oa.get("https://userstream.twitter.com/1.1/user.json", config.token, config.secret);
     
     oaRequest.addListener('response', function (response) {
         response.setEncoding('utf8');
@@ -115,10 +111,10 @@ var userStream = function() {
                             }
                         });
                     }, function(err) {
-						mongoClient.connect(keys.mongodb, function(err, db) {
+						mongoClient.connect(config.mongoURL, function(err, db) {
 							if(err) throw err;
 							
-							var collection = db.collection('test_insert');
+							var collection = db.collection(config.tweet_collection);
 							
 							collection.insert(tweet, function(err, docs) {
 								collection.count(function(err,count) {
@@ -134,16 +130,9 @@ var userStream = function() {
             } 
         }); //addListener 'data'
     
-        // listen for error messages 
-        response.addListener('error', function() {
-        
-            util.logger(util.ERROR, 'Error received from twitter streaming API');
-            return;
-        });
-    
         // listen for end messages from Twitter
         response.addListener('end', function () {
-            util.logger(util.WARN, 'Recevied end message from twitter streaming API');
+            util.logger(util.WARN, 'Received end message from twitter streaming API');
             return; 
         }); // addListener 'end'
         
@@ -151,9 +140,6 @@ var userStream = function() {
      
     oaRequest.end();  
 };
-    
-    
-    
-exports.testStream = testStream;
+        
 exports.userStream = userStream;
 
