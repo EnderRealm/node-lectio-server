@@ -17,7 +17,7 @@ var parseTweet = function(streamObj) {
         var entities;
 
         tweet.id = streamObj['id'];
-        tweet.user_id = streamObj['user']['screen_name'];
+        tweet.screen_name = streamObj['user']['screen_name'];
         tweet.tweet_text = streamObj['text'];
        
         tweet.hashtags = new Array();
@@ -87,7 +87,7 @@ var userStream = function(userID, service) {
                 if (streamObj.hasOwnProperty('id')) {
 
                     var tweet = parseTweet(streamObj);
-					tweet.userID = userID;
+					tweet.user_id = userID;
 
                     async.eachSeries(tweet.urls, function(url, callback) {
                         
