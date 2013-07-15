@@ -27,7 +27,7 @@ function getObjectClass(obj) {
 
 
 
-function debugPrint(arg, depth) {
+function debug(arg, depth) {
     var type = typeof(arg);
     
     if(type == 'object') {
@@ -60,7 +60,8 @@ var logger = function (type, msg) {
 
 
 exports.logger = logger;
-exports.debugPrint = debugPrint;
+exports.debug = debug;
+
 exports.ERROR = ERROR;
 exports.WARN = WARN;
 exports.INFO = INFO;
