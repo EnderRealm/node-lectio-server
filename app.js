@@ -30,7 +30,6 @@ mongoClient.connect(config.mongoURL, function(err, db) {
 				switch(service.name) {
 					case 'Twitter': 
 						twitlib.userStream(user._id, service);
-						util.logger(util.INFO, 'New twitter stream processor for user id('+user._id+')');
 						break;
 				}
 			}

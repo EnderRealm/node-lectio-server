@@ -131,6 +131,9 @@ var userStream = function(userID, service) {
     }); // addListener 'response'
      
     oaRequest.end();  
+
+	util.logger(util.INFO, 'New twitter stream processor for user id('+userID+')');
+
 };
         
 exports.userStream = userStream;
