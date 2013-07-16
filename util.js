@@ -1,6 +1,5 @@
 var util = require('util');
 
-
 var ERROR = 'error';
 var WARN = 'warning';
 var INFO = 'info';
@@ -42,10 +41,9 @@ function debug(arg, depth) {
 
 
 
-var logger = function (type, msg) {
+function logger(type, msg) {
     
     if(!LOG_TYPE_SET.hasOwnProperty(type)) {
-        
         console.error('[error] invalid logging type: ' + type);
         throw 'invalid logging type';
     }

@@ -36,7 +36,13 @@ function getFbData(accessToken, apiPath, callback) {
 }
 
 
-var fb_access_token = 'CAAGydn2NB1UBAEZASuJGjgTpuntnUJ45TchE1pzDxzZAMvnk73UFt3mtRwIDRedbHmCaoKvBuTI54D2OryURJl3QWT290XUWHr4VEudXuE3sIaN6NIfTKvOqTFy82AVwiJOzSp3IZCYlOIIvs3DzwoyQc9V12oZD&'
+
+geturl = new RegExp(
+          "(^|[ \t\r\n])((ftp|http|https|gopher|mailto|news|nntp|telnet|wais|file|prospero|aim|webcal):(([A-Za-z0-9$_.+!*(),;/?:@&~=-])|%[A-Fa-f0-9]{2}){2,}(#([a-zA-Z0-9][a-zA-Z0-9$_.+!*(),;/?:@&~=%-]*))?([A-Za-z0-9$_+!*();/?:~-]))"
+         ,"g"
+       );
+
+var fb_access_token = 'CAAGydn2NB1UBAEfNGXgxVsbcPFZCSrQesBKB1yBaDPq8fJzl9nD7S7sKgrr1RcMrp3vHUFViB3ZAdNZApwATqb9oudT6yUoPZB0fMp5gSd5xNCFWNiJLlilqKz7ztvCd4P6ZCXjhkUBZAwFPAHZBL5BIYZASL48nxKAZD&&&'
 var fb_friends_url = '/me/friends';
 var fb_newsfeed_url = '/me/home';
 
@@ -54,53 +60,75 @@ getFbData(fb_access_token, fb_newsfeed_url, function(data){
 	async.eachSeries(obj.data, function(item, callback) {
 		var type = item.type;
 		var post = {};
+		var urls = '';
 		
 		post.type = type;
-		post.id = item.id;
+		post.source = 'facebook'
 		
-		switch(type) {
-			case 'photo': 
-				posts.push(post);
-				callback();
-				break;
-			case 'link': 
-				util.debug(item, 10);
-				
-				netlib.expandUrl(item.link, function(err, data) {
-					if(err) {
-						util.logger(util.ERROR, err);
-					} 
-					else {
-						post.short_link = item.link;
-						post.long_link = data;
-						posts.push(post);
-						callback();
-					}
-				});
-				break;
-			case 'status': 
-				posts.push(post);
-				callback();
-				break;
-			case 'video': 
-				posts.push(post);
-				callback();
-				break;
-			default:
-				util.logg(util.WARN, 'unhandled neewsfeed type');
-				callback();
-				break;
+		post.id = item.id;
+		post.screen_name = '';
+
+		post.from = {};
+		post.from.id = item.from.id;
+		post.from.name = item.from.name;
+		post.time = item.created_time;
+
+		post.text = item.message;
+		post.hastags = new Array();
+		post.urls = new Array();
+		post.users = new Array();
+
+		util.logger(util.INFO, type);
+		
+		if(item.message != undefined) urls = item.message.match(geturl);
+
+		for(i in urls) {
+			var url = {};
+			
+			url.short_url = urls[i];
+			post.urls.push(url);
 		}
+				
+		if(type == 'link') {
+			var url = {};
+			url.short_url = item.link;
+			post.urls.push(url);
+		}
+		
+		posts.push(post);
+		callback();
 		
 	}, function(err) {
-
-
 		for(i in posts) {
-			util.logger(util.INFO, 'insert FB:'+posts[i].type+' id(' + posts[i].id + ') to db as id(' + 0 + ') for user id(' + 0 + ')');
-		
-		
-		}
 
+			if(posts[i].urls.length>0) {
+
+				async.eachSeries(posts[i].urls, function(url, callback) {
+					
+					netlib.expandUrl(url.short_url, function(err, data) {
+						if(err) {
+							util.logger(util.ERROR, err);
+						} 
+						else {
+							url.long_url = data;
+							callback();
+						}
+					});
+				}, function(err) {
+
+					util.logger(util.INFO, 'insert FB:'+posts[i].type+' id(' + posts[i].id + ') to db as id(' + 0 + ') for user id(' + posts[i].from.id + ')');
+					
+				
+				});
+
+			} else {
+
+				util.logger(util.INFO, 'not insert FB:'+posts[i].type+' id(' + posts[i].id + ') to db as id(' + 0 + ') for user id(' + posts[i].from.id + ')');
+
+
+			}
+		}
+		
 	});
 
 });

@@ -15,14 +15,21 @@ var parseTweet = function(streamObj) {
     if(streamObj.hasOwnProperty('id')) {        
         var tweet = new Object();
         var entities;
-
-        tweet.id = streamObj['id'];
-        tweet.screen_name = streamObj['user']['screen_name'];
-        tweet.tweet_text = streamObj['text'];
-       
+		
+		tweet.type = 'tweet'
+		tweet.source = 'twitter';
+		
+		tweet.from = {};
         tweet.hashtags = new Array();
         tweet.urls = new Array();
         tweet.users = new Array();
+
+        tweet.from.screen_name = streamObj['user']['screen_name'];
+		tweet.from.id = streamObj['user']['id'];
+        tweet.id = streamObj['id'];
+        tweet.text = streamObj['text'];
+		tweet.time = streamObj['created_at'];
+
         
         // check if tweet contains hashtags
         if(streamObj['entities'].hasOwnProperty('hashtags')) {
