@@ -9,7 +9,8 @@
         "q":"*",
         "request":"*",
         "async":"*",
-        "mongodb":"*"
+        "mongodb":"*",
+        "twitter-text":"*"
     },
     "engines": {
         "node" : "0.10.x",

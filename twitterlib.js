@@ -51,9 +51,7 @@ var parseTweet = function(streamObj) {
         if(streamObj['entities'].hasOwnProperty('urls')) {
             entities = streamObj['entities']['urls'];
             for (var i in entities) {
-                var url = new Object();
-                url.short_url = entities[i].url;
-                tweet.urls.push(url);
+                tweet.urls.push(entities[i].url);
             }
         }
        
@@ -98,12 +96,12 @@ var userStream = function(userID, service) {
 
                     async.eachSeries(tweet.urls, function(url, callback) {
                         
-                        netlib.expandUrl(url.short_url, function(err, data) {
+                        netlib.expandUrl(url, function(err, data) {
                             if(err) {
                                 util.logger(util.ERROR, err);
                             } 
                             else {
-                                url.long_url = data;
+                                url = data;
                                 callback();
                             }
                         });

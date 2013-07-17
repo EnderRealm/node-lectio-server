@@ -4,12 +4,32 @@ var ERROR = 'error';
 var WARN = 'warning';
 var INFO = 'info';
 var DEBUG = 'debug';
+var LINE = 'line';
 
 var LOG_TYPE_SET = {};
 LOG_TYPE_SET[ERROR] = 'error';
 LOG_TYPE_SET[WARN] = 'warn';
 LOG_TYPE_SET[INFO] = 'info';
 LOG_TYPE_SET[DEBUG] = 'debug';
+LOG_TYPE_SET[LINE] = 'line';
+
+
+
+function eliminateDuplicates(arr) {
+    var i;
+    var len = arr.length;
+    var out = [];
+    var obj = {};
+    
+    for(i in arr) {
+        obj[arr[i]]=0;
+    }
+    for(i in obj) {
+        out.push(i);
+    }
+
+    return out;
+}
 
 
 function getObjectClass(obj) {
@@ -40,7 +60,6 @@ function debug(arg, depth) {
 }
 
 
-
 function logger(type, msg) {
     
     if(!LOG_TYPE_SET.hasOwnProperty(type)) {
@@ -48,10 +67,17 @@ function logger(type, msg) {
         throw 'invalid logging type';
     }
 
-    var now = new Date();
-    var timestamp = now.getUTCMonth()+'-'+now.getUTCDate()+'-'+now.getUTCFullYear()+' '+now.getUTCHours()+':'+now.getUTCMinutes()+':'+now.getUTCSeconds()+'.'+now.getUTCMilliseconds()
+    if(type == LINE) {
+
+        console.log('========================================');
+        
+    } else {
+        var now = new Date();
+        var timestamp = now.getUTCMonth()+'-'+now.getUTCDate()+'-'+now.getUTCFullYear()+' '+now.getUTCHours()+':'+now.getUTCMinutes()+':'+now.getUTCSeconds()+'.'+now.getUTCMilliseconds()
+        
+        console.log('['+type+']'+'('+timestamp+') '+ msg);
+    }
     
-    console.log('['+type+']'+'('+timestamp+') '+ msg);
 
     return;
 }
@@ -59,8 +85,10 @@ function logger(type, msg) {
 
 exports.logger = logger;
 exports.debug = debug;
+exports.dedup = eliminateDuplicates;
 
 exports.ERROR = ERROR;
 exports.WARN = WARN;
 exports.INFO = INFO;
 exports.DEBUG = DEBUG;
+exports.LINE = LINE;
