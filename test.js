@@ -33,3 +33,9 @@ console.log(test || '');
             var created = new Date();
             
             console.log('link -- ' + created.getMonth()+'/'+created.getDate()+' '+created.getHours()+':'+created.getMinutes());
+            
+            
+            
+            created = new Date();
+            
+            console.log(created.getTime());
