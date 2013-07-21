@@ -8,5 +8,6 @@
         <File name="util.js" />
         <File name="README.md" />
         <File name="facebooklib.js" />
+        <File name="config.js" />
     </Project>
 </NotepadPlus>

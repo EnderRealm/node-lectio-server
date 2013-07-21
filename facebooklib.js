@@ -13,96 +13,96 @@ var util = require('./util.js');
 var config = require('./config.js').config;
 
 
-function getFbData(accessToken, apiPath, params, callback) {
-    var options = {
-        host: 'graph.facebook.com',
-        port: 443,
-        path: apiPath + '?access_token=' + accessToken + (params||''), //apiPath example: '/me/friends'
-        method: 'GET'
-    };
+// function getFbData(accessToken, apiPath, params, callback) {
+    // var options = {
+        // host: 'graph.facebook.com',
+        // port: 443,
+        // path: apiPath + '?access_token=' + accessToken + (params||''), //apiPath example: '/me/friends'
+        // method: 'GET'
+    // };
     
-    var buffer = ''; //this buffer will be populated with the chunks of the data received from facebook
-    var request = https.get(options, function(result){
-        result.setEncoding('utf8');
-        result.on('data', function(chunk){
-            buffer += chunk;
-        });
+    // var buffer = ''; //this buffer will be populated with the chunks of the data received from facebook
+    // var request = https.get(options, function(result){
+        // result.setEncoding('utf8');
+        // result.on('data', function(chunk){
+            // buffer += chunk;
+        // });
 
-        result.on('end', function(){
-            callback(buffer);
-        });
-    });
+        // result.on('end', function(){
+            // callback(buffer);
+        // });
+    // });
 
-    request.on('error', function(e){
-        util.logger(util.ERROR, 'error from facebook.getFbData: ' + e.message);
-    });
+    // request.on('error', function(e){
+        // util.logger(util.ERROR, 'error from facebook.getFbData: ' + e.message);
+    // });
 
-    request.end();
-}
-
-
-var fb_access_token = 'CAAGydn2NB1UBAGAyZA2Stm6zf6RDxYw1JybNZC54evVma30Nh1GnA29uVWEiOIybAlls2wrsxZB5d8nCqDpgkoa2LO8CbLXbXK9KWh0RK2icmq4CmRmGld8GTsPT0gqHmhpSIMrvzkIo5HdFL2X9hrOrKQirIEZD'
-var fb_newsfeed_url = '/me/home';
+    // request.end();
+// }
 
 
-util.logger(util.INFO, 'New facebook news stream processor for user id('+0+')');
+// var fb_access_token = 'CAAGydn2NB1UBAGAyZA2Stm6zf6RDxYw1JybNZC54evVma30Nh1GnA29uVWEiOIybAlls2wrsxZB5d8nCqDpgkoa2LO8CbLXbXK9KWh0RK2icmq4CmRmGld8GTsPT0gqHmhpSIMrvzkIo5HdFL2X9hrOrKQirIEZD'
+// var fb_newsfeed_url = '/me/home';
 
 
-var fb_newsfeed_url = '/me/home';
+// util.logger(util.INFO, 'New facebook news stream processor for user id('+0+')');
 
 
-var type_counts = {};
+// var fb_newsfeed_url = '/me/home';
+
+
+// var type_counts = {};
 
 
 
-function userStream(access_token, newsfeed_url, url_params, callback) {
-    getFbData(access_token, newsfeed_url, url_params, function(data) {
+// function userStream(access_token, newsfeed_url, url_params, callback) {
+    // getFbData(access_token, newsfeed_url, url_params, function(data) {
 
-        var obj = JSON.parse(data);
-        var next_url = null;
+        // var obj = JSON.parse(data);
+        // var next_url = null;
 
-        if(obj.hasOwnProperty('error')) throw obj.error.message;
+        // if(obj.hasOwnProperty('error')) throw obj.error.message;
     
-        for(i in obj.data) {
-            var item = obj.data[i];
+        // for(i in obj.data) {
+            // var item = obj.data[i];
             
-            var created = new Date(item.created_time)
+            // var created = new Date(item.created_time)
             
-            console.log(item.type + ' -- ' + created.getMonth()+'/'+created.getDate()+' '+created.getHours()+':'+created.getMinutes());
+            // console.log(item.type + ' -- ' + created.getMonth()+'/'+created.getDate()+' '+created.getHours()+':'+created.getMinutes());
             
-            if(type_counts.hasOwnProperty(item.type)) {
-                type_counts[item.type] = type_counts[item.type] + 1;
-            } else {
-                type_counts[item.type] = 1;
-            }
-        }
+            // if(type_counts.hasOwnProperty(item.type)) {
+                // type_counts[item.type] = type_counts[item.type] + 1;
+            // } else {
+                // type_counts[item.type] = 1;
+            // }
+        // }
         
-        if(obj.hasOwnProperty('paging')) {
-            next_url = obj.paging.next;
-        }
+        // if(obj.hasOwnProperty('paging')) {
+            // next_url = obj.paging.next;
+        // }
         
-        callback(next_url);
+        // callback(next_url);
         
-    });
-}
+    // });
+// }
 
 
 
-userStream(fb_access_token, fb_newsfeed_url, null, function lambda(data) {
+// userStream(fb_access_token, fb_newsfeed_url, null, function lambda(data) {
     
-    if(data) {
-        var url_obj = url.parse(data, true);
+    // if(data) {
+        // var url_obj = url.parse(data, true);
 
-        var url_params = '&limit='+url_obj.query.limit+'&until='+url_obj.query.until;
+        // var url_params = '&limit='+url_obj.query.limit+'&until='+url_obj.query.until;
         
-        userStream(fb_access_token, fb_newsfeed_url, url_params, lambda);
+        // userStream(fb_access_token, fb_newsfeed_url, url_params, lambda);
 
-    } else {
-        console.log('done...');
+    // } else {
+        // console.log('done...');
     
-    }
+    // }
         
-});
+// });
 
 
 

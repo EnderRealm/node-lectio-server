@@ -1,1 +1,1 @@
-worker: node app.js
+worker: node db_test.js

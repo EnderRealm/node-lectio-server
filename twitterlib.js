@@ -21,6 +21,7 @@ var parseTweet = function(streamObj) {
 		
 		tweet.from = {};
         tweet.hashtags = new Array();
+        tweet.short_urls = new Array();
         tweet.urls = new Array();
         tweet.users = new Array();
 
@@ -51,7 +52,7 @@ var parseTweet = function(streamObj) {
         if(streamObj['entities'].hasOwnProperty('urls')) {
             entities = streamObj['entities']['urls'];
             for (var i in entities) {
-                tweet.urls.push(entities[i].url);
+                tweet.short_urls.push(entities[i].url);
             }
         }
        
@@ -71,74 +72,85 @@ var parseTweet = function(streamObj) {
 };
 
     
-var userStream = function(userID, service) {
-	
-    var oa = new OAuth("https://api.twitter.com/oauth/request_token",
-        "https://api.twitter.com/oauth/access_token", 
-        service.twitter_consumer_key, service.twitter_consumer_secret, "1.0", config.streamURL, "HMAC-SHA1");
-
-    var oaRequest = oa.get("https://userstream.twitter.com/1.1/user.json", service.twitter_token, service.twitter_secret);
+var userStream = function(userID, user_service, service) {
     
-    oaRequest.addListener('response', function (response) {
-        response.setEncoding('utf8');
-        
-        response.addListener('data', function (chunk) {
-         
-            // only processes JSON packages, ignore keep alive pings
-            if (chunk[0] == '{') {
-                          
-                var streamObj = JSON.parse(chunk);
-				
-                if (streamObj.hasOwnProperty('id')) {
+    mongoClient.connect(config.mongoURL, function(err, db) {
+    if(err) throw err;
 
-                    var tweet = parseTweet(streamObj);
-					tweet.user_id = userID;
+        var oa = new OAuth("https://api.twitter.com/oauth/request_token",
+            "https://api.twitter.com/oauth/access_token", 
+            user_service.twitter_consumer_key, user_service.twitter_consumer_secret, "1.0", config.streamURL, "HMAC-SHA1");
 
-                    async.eachSeries(tweet.urls, function(url, callback) {
-                        
-                        netlib.expandUrl(url, function(err, data) {
-                            if(err) {
-                                util.logger(util.ERROR, err);
-                            } 
-                            else {
-                                url = data;
-                                callback();
-                            }
-                        });
-                    }, function(err) {
-						mongoClient.connect(config.mongoURL, function(err, db) {
-							if(err) throw err;
-							
-							var collection = db.collection(config.tweet_collection);
-							
-							
-							
-							collection.insert(tweet, function(err, docs) {
-								collection.count(function(err,count) {
-									db.close();
-								}); // collection.count
-							}); // collection.insert
-                            
-                            util.logger(util.INFO, 'insert tweet id(' + tweet.id + ') to db as id(' + tweet._id + ') for user id(' + userID + ')');
-                            
-						}); // mongoClient.connect
-                    });
-                }
-            } 
-        }); //addListener 'data'
+            
+        var oaRequest = oa.get("https://userstream.twitter.com/1.1/user.json", user_service.twitter_token, user_service.twitter_token_secret);
+
     
-        // listen for end messages from Twitter
-        response.addListener('end', function () {
-            util.logger(util.WARN, 'Received end message from twitter streaming API');
-            return; 
-        }); // addListener 'end'
+        oaRequest.addListener('response', function (response) {
+            response.setEncoding('utf8');
+            
+            response.addListener('data', function (chunk) {
+             
+                // only processes JSON packages, ignore keep alive pings
+                if (chunk[0] == '{') {
+                              
+                    var streamObj = JSON.parse(chunk);
+                    
+                    if (streamObj.hasOwnProperty('id')) {
+
+                        var tweet = parseTweet(streamObj);
+                        tweet.user_id = userID;
+
+                        if(tweet.short_urls.length>0) {
+                            
+                            async.eachSeries(tweet.short_urls, function(url, callback) {
+
+                                netlib.expandUrl(url, function(err, data) {
+                                    if(err) {
+                                        util.logger(util.ERROR, err);
+                                    } 
+                                    else {
+                                        tweet.urls.push({short_url: url, long_url: data});
+                                        callback();
+                                    }
+                                });
+                            }, function(err) {
+                                
+                                // clean up tweet object
+                                delete tweet.short_urls;
+                                
+                                db.collection(config.tweet_collection).insert(tweet, function(err, docs) {
+                                    if(err) {
+                                        util.logger(util.ERROR, 'error inserting tweet id(' + tweet.id + ') to db as id(' + tweet._id + ') for user id(' + userID + ')');
+                                        throw(err);
+                                    }
+                                    
+                                    util.logger(util.INFO, 'insert tweet id(' + tweet.id + ') to db as id(' + tweet._id + ') for user id(' + userID + ')');
+                                }); // collection.insert
+                                
+                            }); //async.eachSeries
+                        }
+                    }
+                } 
+            }); //addListener 'data'
         
-    }); // addListener 'response'
-     
+            // listen for end messages from Twitter
+            response.addListener('end', function () {
+                util.logger(util.WARN, 'Received end message from twitter streaming API');
+                return; 
+            }); // addListener 'end'
+            
+        }); // addListener 'response'
+
     oaRequest.end();  
 
+    }); // mongoClient.connect
+    
+    
+    
 	util.logger(util.INFO, 'New twitter stream processor for user id('+userID+')');
 
+    
+    
 };
         
 exports.userStream = userStream;

@@ -52,7 +52,7 @@ function debug(arg, depth) {
     if(type == 'object') {
         var obj = eval(arg);
         
-        arg = util.inspect(arg, {showHidden: true, depth: depth, colors: true});
+        arg = util.inspect(arg, {showHidden: true, depth: depth, colors: false});
         type = getObjectClass(obj);
      }
 

@@ -9,6 +9,9 @@ var url = require('url');
 var request = require('request');
 
 
+var config = require('./config.js').config;
+
+
 
 var test = "This is a test string #hashit @smacbeth #otherhash @otheruser";
 
@@ -32,7 +35,6 @@ var urls = twitter.extractUrls(test);
 
 
 var fb = require('fb');
-var step = require('step');
 
    
 var fb_access_token = 'CAAGydn2NB1UBAGi0qfTOxa1nHslIk5uOXG26ye2Y20ZBrk7UuxJoudvR6QYtwdb8f51351bOuuvmuEa2y791hOsnZAx4W1eKBB7P81YCHsRWwmLpdZBns4UwZB5Ye6ICFsi4RJBlEgnatdhrQ7M1TDvERFPtFZAQZD';
@@ -68,7 +70,7 @@ fb.api('fql', {q:"SELECT post_id, actor_id, target_id, message, attachment FROM 
     
         if(res.error.type = 'OAuthException') {
         
-            fbExtendAccessToken(fb, { client_id: '477696958990165', client_secret: '67a0826bb847ff02c14fa6db6276aa61', redirect_uri: 'http://www.enderrealm.com', grant_type: 'fb_exchange_token', fb_exchange_token:'CAAGydn2NB1UBAMopsEVebMV626ZCiHYMcwS03JMGMMHO3fxG7Dik0OlT5tKiwZCwNySjAl0WDcprS3TVTsNyZAufIUZASHq3I32Wzev9pkgNmXZBoc311O5ZCM0dyHL9b7EcAIYMgKnG8ikiz5jWfL'}, function(err,res){
+            fbExtendAccessToken(fb, { client_id: '', client_secret: '', redirect_uri: 'http://www.enderrealm.com', grant_type: 'fb_exchange_token', fb_exchange_token:'CAAGydn2NB1UBAMopsEVebMV626ZCiHYMcwS03JMGMMHO3fxG7Dik0OlT5tKiwZCwNySjAl0WDcprS3TVTsNyZAufIUZASHq3I32Wzev9pkgNmXZBoc311O5ZCM0dyHL9b7EcAIYMgKnG8ikiz5jWfL'}, function(err,res){
 
                 var accessToken = res.access_token;
                 var expiry = res.expires;

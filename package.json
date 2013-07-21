@@ -10,7 +10,8 @@
         "request":"*",
         "async":"*",
         "mongodb":"*",
-        "twitter-text":"*"
+        "twitter-text":"*",
+        "fb":"*"
     },
     "engines": {
         "node" : "0.10.x",
