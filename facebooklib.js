@@ -1,11 +1,15 @@
-var fb = require('fb');
 
-var config = require('./config.js');
+// community extensions
+var fb = require('fb');
+var mongoClient = require('mongodb').MongoClient;
+
+// custom extensions
+var config = require('./config.js').config;
+var util = require('./util.js');
+
 
 
 function fbExtendAccessToken(fb, options, callback) {
-
-
     
     fb.api('oauth/access_token', options, function(res) {
     
@@ -25,21 +29,26 @@ function fbExtendAccessToken(fb, options, callback) {
 
 var userStream = function(userID, user_service, service) {
 
-	console.log('in facebook userStream');
-
 	fb.setAccessToken(user_service.facebook_access_token);
-    
+  
     mongoClient.connect(config.mongoURL, function(err, db) {
 		if(err) throw err;
 
-		fb.api('fql', {q:"SELECT post_id, actor_id, target_id, message, attachment FROM stream"}, function lambda(res) {
+		fb.api('fql', {q:"select message, actor_id, attachment.href, created_time, like_info.like_count, place, post_id, share_count, type, tagged_ids, with_tags from stream where filter_key = 'nf'"}, function lambda(res) {
 
 			if(!res || res.error) {
 			
 				if(res.error.type = 'OAuthException') {
 				
-					fbExtendAccessToken(fb, { client_id: service.facebook_client_id, client_secret: service.facebook_client_secret, redirect_uri: service.facebook_redirect_url, grant_type: 'fb_exchange_token', fb_exchange_token: user_server.facebook_access_token, function(err,res){
+					var options = { 
+                        client_id: service.access.facebook_application_id, 
+                        client_secret: service.access.facebook_application_secret, 
+                        redirect_uri: service.access.facebook_redirect_url, 
+                        grant_type: 'fb_exchange_token', 
+                        fb_exchange_token: user_service.facebook_access_token 
+                    };
 
+                    fbExtendAccessToken(fb, options, function(err,res) {
 						var accessToken = res.access_token;
 						var expiry = res.expires;
 			
@@ -61,18 +70,13 @@ var userStream = function(userID, user_service, service) {
 			}
 
 			util.debug(res, 1); 
-
+            
+            
 		});
-		
-		
-		
-		
-		
-		
 		
 	});
 
-});
+}
 
     
 
