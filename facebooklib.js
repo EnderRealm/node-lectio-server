@@ -1,16 +1,115 @@
-// node.js core libraries
-var https = require('https');
-var async = require('async');
-var url = require('url');
+var fb = require('fb');
 
-// npm libraries
-var twitter = require('twitter-text');
+var config = require('./config.js');
 
 
-// user libraries
-var netlib = require('./netlib.js');
-var util = require('./util.js');
-var config = require('./config.js').config;
+function fbExtendAccessToken(fb, options, callback) {
+
+
+    
+    fb.api('oauth/access_token', options, function(res) {
+    
+        if(!res || res.error) {
+        
+            console.log(!res ? 'error occured' : res.error);
+            callback(res.error);
+        }
+    
+        callback(null, res);
+        
+    });
+    
+}    
+
+
+
+var userStream = function(userID, user_service, service) {
+
+	console.log('in facebook userStream');
+
+	fb.setAccessToken(user_service.facebook_access_token);
+    
+    mongoClient.connect(config.mongoURL, function(err, db) {
+		if(err) throw err;
+
+		fb.api('fql', {q:"SELECT post_id, actor_id, target_id, message, attachment FROM stream"}, function lambda(res) {
+
+			if(!res || res.error) {
+			
+				if(res.error.type = 'OAuthException') {
+				
+					fbExtendAccessToken(fb, { client_id: service.facebook_client_id, client_secret: service.facebook_client_secret, redirect_uri: service.facebook_redirect_url, grant_type: 'fb_exchange_token', fb_exchange_token: user_server.facebook_access_token, function(err,res){
+
+						var accessToken = res.access_token;
+						var expiry = res.expires;
+			
+						fb.setAccessToken(accessToken);
+	
+						// check if access token expires in less then three days (60*60*24*3)
+						if(expiry < (259200)) {
+							console.log('token expires in less then three days : '+expiry);
+						}
+
+						fb.api('fql', {q:"SELECT post_id, actor_id, target_id, message, attachment FROM stream"}, lambda);
+						
+					});
+				}
+			
+				console.log(!res ? 'error occured' : res.error);
+				return;
+			
+			}
+
+			util.debug(res, 1); 
+
+		});
+		
+		
+		
+		
+		
+		
+		
+	});
+
+});
+
+    
+
+exports.userStream = userStream;
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // function getFbData(accessToken, apiPath, params, callback) {

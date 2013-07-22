@@ -3,7 +3,7 @@ var mongoClient = require('mongodb').MongoClient;
 var util = require('./util.js');
 var config = require('./config.js').config;
 var twitlib = require('./twitterlib.js');
-
+var fblib = require('./facebooklib.js');
 
 
 util.logger(util.INFO, 'Starting update stream processing server...');
@@ -12,20 +12,15 @@ util.logger(util.INFO, 'Starting update stream processing server...');
 
 
 function getService(collection, user_id, user_service) {
-    
-    console.log('in getService');
     collection.findOne({_id: user_service.service_id}, function(err,service) {
-
-        console.log('user id = '+user_id);
-
-    
         switch(service.name) {
         case 'Twitter': 
-            twitlib.userStream(user_id, user_service, service);
+            //twitlib.userStream(user_id, user_service, service);
             break;
             
         case 'Facebook':
-            fblib.userStream(user_id, user_service, service);
+			console.log('facebook processor');
+			fblib.userStream(user_id, user_service, service);
             break;
         }
     });
