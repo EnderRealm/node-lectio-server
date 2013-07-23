@@ -27,6 +27,10 @@ function fbExtendAccessToken(fb, options, callback) {
 
 
 
+function getStreamPosts(options, 
+
+
+
 var userStream = function(userID, user_service, service) {
 
 	fb.setAccessToken(user_service.facebook_access_token);
@@ -34,19 +38,31 @@ var userStream = function(userID, user_service, service) {
     mongoClient.connect(config.mongoURL, function(err, db) {
 		if(err) throw err;
 
+
+        var options = { 
+            client_id: service.access.facebook_application_id, 
+            client_secret: service.access.facebook_application_secret, 
+            redirect_uri: service.access.facebook_redirect_url, 
+            grant_type: 'fb_exchange_token', 
+            fb_exchange_token: user_service.facebook_access_token 
+        };
+
+        
+        var last_post = user_service.latest_post_time;
+        
+        
+        getStreamPosts( options, 
+
+
+
+
+
 		fb.api('fql', {q:"select message, actor_id, attachment.href, created_time, like_info.like_count, place, post_id, share_count, type, tagged_ids, with_tags from stream where filter_key = 'nf'"}, function lambda(res) {
 
 			if(!res || res.error) {
 			
 				if(res.error.type = 'OAuthException') {
 				
-					var options = { 
-                        client_id: service.access.facebook_application_id, 
-                        client_secret: service.access.facebook_application_secret, 
-                        redirect_uri: service.access.facebook_redirect_url, 
-                        grant_type: 'fb_exchange_token', 
-                        fb_exchange_token: user_service.facebook_access_token 
-                    };
 
                     fbExtendAccessToken(fb, options, function(err,res) {
 						var accessToken = res.access_token;
